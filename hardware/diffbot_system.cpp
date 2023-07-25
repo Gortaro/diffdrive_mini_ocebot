@@ -36,7 +36,12 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   {
     return hardware_interface::CallbackReturn::ERROR;
   }
+
   gpioInitialise();
+
+  left_motor_pin = std::stoi(info_.hardware_parameters["left_motor_pin"]);
+  right_motor_pin = std::stoi(info_.hardware_parameters["right_motor_pin"]);
+  
   // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
   hw_start_sec_ = std::stod(info_.hardware_parameters["example_param_hw_start_duration_sec"]);
   hw_stop_sec_ = std::stod(info_.hardware_parameters["example_param_hw_stop_duration_sec"]);
