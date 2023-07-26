@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ros2_control_demo_example_2/diffbot_system.hpp"
+#include "diffdrive_mini_ocebot/diffbot_system.hpp"
 
 #include <chrono>
 #include <cmath>
@@ -25,7 +25,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include <pigpio.h>
 
-namespace ros2_control_demo_example_2
+namespace diffdrive_mini_ocebot
 {
 hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   const hardware_interface::HardwareInfo & info)
@@ -39,16 +39,14 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
 
   gpioInitialise();
 
-  left_motor_pin = std::stoi(info_.hardware_parameters["left_motor_pin"]);
-  right_motor_pin = std::stoi(info_.hardware_parameters["right_motor_pin"]);
+  cfg_.left_wheel_name = info_.hardware_parameters["left_wheel_name"];
+  cfg_.right_wheel_name = info_.hardware_parameters["right_wheel_name"];
+  cfg_.left_wheel_pin = std::stoi(info_.hardware_parameters["left_wheel_pin"]);
+  cfg_.right_wheel_pin = std::stoi(info_.hardware_parameters["right_wheel_pin"]);
+  cfg_.enc_counts_per_rev = std::stoi(info_.hardware_parameters["enc_counts_per_rev"]);
   
-  // BEGIN: This part here is for exemplary purposes - Please do not copy to your production code
-  hw_start_sec_ = std::stod(info_.hardware_parameters["example_param_hw_start_duration_sec"]);
-  hw_stop_sec_ = std::stod(info_.hardware_parameters["example_param_hw_stop_duration_sec"]);
-  // END: This part here is for exemplary purposes - Please do not copy to your production code
-  hw_positions_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_velocities_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
-  hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
+  wheel_left_.setup(cfg_.left_wheel_name, cfg_.enc_counts_per_rev);
+  wheel_right_.setup(cfg_.right_wheel_name, cfg_.enc_counts_per_rev);
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
@@ -105,13 +103,16 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
 std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
-  for (auto i = 0u; i < info_.joints.size(); i++)
-  {
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_POSITION, &hw_positions_[i]));
-    state_interfaces.emplace_back(hardware_interface::StateInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_velocities_[i]));
-  }
+  
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+    wheel_left_.name, hardware_interface::HW_IF_POSITION, &wheel_left_.pos));
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+    wheel_left_.name, hardware_interface::HW_IF_VELOCITY, &wheel_left_.vel));
+
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+    wheel_right_.name, hardware_interface::HW_IF_POSITION, &wheel_right_.pos));
+  state_interfaces.emplace_back(hardware_interface::StateInterface(
+    wheel_right_.name, hardware_interface::HW_IF_VELOCITY, &wheel_right_.vel));
 
   return state_interfaces;
 }
@@ -119,11 +120,12 @@ std::vector<hardware_interface::StateInterface> DiffBotSystemHardware::export_st
 std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
-  for (auto i = 0u; i < info_.joints.size(); i++)
-  {
-    command_interfaces.emplace_back(hardware_interface::CommandInterface(
-      info_.joints[i].name, hardware_interface::HW_IF_VELOCITY, &hw_commands_[i]));
-  }
+
+  command_interfaces.emplace_back(hardware_interface::CommandInterface(
+    wheel_left_.name, hardware_interface::HW_IF_VELOCITY, &wheel_left_.cmd));
+
+  command_interfaces.emplace_back(hardware_interface::CommandInterface(
+    wheel_right_.name, hardware_interface::HW_IF_VELOCITY, &wheel_right_.cmd));
 
   return command_interfaces;
 }
@@ -132,8 +134,6 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Activating ...please wait...");
-
-
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully activated!");
 
@@ -151,13 +151,22 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
 }
 
 hardware_interface::return_type DiffBotSystemHardware::read(
-  const rclcpp::Time & /*time*/, const rclcpp::Duration & /* period */)
+  const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
-  
+  double delta_seconds = period.seconds();
+
+  float pos_prev = wheel_left_.pos;
+  wheel_left_.pos = wheel_left_.calc_enc_angle();
+  wheel_left_.vel = (wheel_left_.pos - pos_prev) / delta_seconds;
+
+  pos_prev = wheel_right_.pos;
+  wheel_right_.pos = wheel_right_.calc_enc_angle();
+  wheel_right_.vel = (wheel_right_.pos - pos_prev) / delta_seconds;
+
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type ros2_control_demo_example_2 ::DiffBotSystemHardware::write(
+hardware_interface::return_type diffdrive_mini_ocebot ::DiffBotSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
   
@@ -165,8 +174,8 @@ hardware_interface::return_type ros2_control_demo_example_2 ::DiffBotSystemHardw
   return hardware_interface::return_type::OK;
 }
 
-}  // namespace ros2_control_demo_example_2
+}  // namespace diffdrive_mini_ocebot
 
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
-  ros2_control_demo_example_2::DiffBotSystemHardware, hardware_interface::SystemInterface)
+  diffdrive_mini_ocebot::DiffBotSystemHardware, hardware_interface::SystemInterface)

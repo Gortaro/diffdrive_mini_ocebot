@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef ROS2_CONTROL_DEMO_EXAMPLE_2__DIFFBOT_SYSTEM_HPP_
-#define ROS2_CONTROL_DEMO_EXAMPLE_2__DIFFBOT_SYSTEM_HPP_
+#ifndef DIFFDRIVE_MINI_OCEBOT__DIFFBOT_SYSTEM_HPP_
+#define DIFFDRIVE_MINI_OCEBOT__DIFFBOT_SYSTEM_HPP_
 
 #include <memory>
 #include <string>
@@ -30,52 +30,58 @@
 #include "rclcpp_lifecycle/node_interfaces/lifecycle_node_interface.hpp"
 #include "rclcpp_lifecycle/state.hpp"
 
-#include "ros2_control_demo_example_2/visibility_control.h"
+#include "diffdrive_mini_ocebot/visibility_control.h"
+#include "diffdrive_mini_ocebot/wheel.hpp"
 
-namespace ros2_control_demo_example_2
+namespace diffdrive_mini_ocebot
 {
 class DiffBotSystemHardware : public hardware_interface::SystemInterface
 {
+
+struct Config 
+{
+  std::string left_wheel_name = "";
+  std::string right_wheel_name = "";
+  int left_wheel_pin = 0;
+  int right_wheel_pin = 0;
+  int enc_counts_per_rev = 0;
+};
+
 public:
   RCLCPP_SHARED_PTR_DEFINITIONS(DiffBotSystemHardware);
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   hardware_interface::CallbackReturn on_init(
     const hardware_interface::HardwareInfo & info) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   hardware_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   hardware_interface::CallbackReturn on_deactivate(
     const rclcpp_lifecycle::State & previous_state) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   hardware_interface::return_type read(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
-  ROS2_CONTROL_DEMO_EXAMPLE_2_PUBLIC
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   hardware_interface::return_type write(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  // Parameters for the DiffBot simulation
-  double hw_start_sec_;
-  double hw_stop_sec_;
-
-  // Store the command for the simulated robot
-  std::vector<double> hw_commands_;
-  std::vector<double> hw_positions_;
-  std::vector<double> hw_velocities_;
+  Config cfg_; 
+  Wheel wheel_left_;
+  Wheel wheel_right_;
 };
 
-}  // namespace ros2_control_demo_example_2
+}  // namespace diffdrive_mini_ocebot
 
-#endif  // ROS2_CONTROL_DEMO_EXAMPLE_2__DIFFBOT_SYSTEM_HPP_
+#endif  // DIFFDRIVE_MINI_OCEBOT__DIFFBOT_SYSTEM_HPP_
