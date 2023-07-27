@@ -6,8 +6,11 @@
     <ros2_control name="${name}" type="system">
       <hardware>
         <plugin>diffdrive_mini_ocebot/DiffBotSystemHardware</plugin>
-        <param name="example_param_hw_start_duration_sec">0</param>
-        <param name="example_param_hw_stop_duration_sec">3.0</param>
+        <param name="left_wheel_name">left_front</param>
+        <param name="right_wheel_name">right_rear</param>
+        <param name="left_wheel_pin">25</param>
+        <param name="right_wheel_pin">10</param>
+        <param name="enc_counts_per_rev">3640</param>
       </hardware>
       <joint name="${prefix}left_wheel_joint">
         <command_interface name="velocity"/>

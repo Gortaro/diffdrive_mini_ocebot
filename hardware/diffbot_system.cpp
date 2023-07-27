@@ -43,7 +43,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   cfg_.right_wheel_name = info_.hardware_parameters["right_wheel_name"];
   cfg_.left_wheel_pin = std::stoi(info_.hardware_parameters["left_wheel_pin"]);
   cfg_.right_wheel_pin = std::stoi(info_.hardware_parameters["right_wheel_pin"]);
-  cfg_.enc_counts_per_rev = std::stoi(info_.hardware_parameters["enc_counts_per_rev"]);
+  cfg_.enc_counts_per_rev = std::stoul(info_.hardware_parameters["enc_counts_per_rev"]);
   
   wheel_left_.setup(cfg_.left_wheel_name, cfg_.enc_counts_per_rev);
   wheel_right_.setup(cfg_.right_wheel_name, cfg_.enc_counts_per_rev);
