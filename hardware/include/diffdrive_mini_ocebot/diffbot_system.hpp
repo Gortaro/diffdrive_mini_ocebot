@@ -61,6 +61,10 @@ public:
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
 
   DIFFDRIVE_MINI_OCEBOT_PUBLIC
+  hardware_interface::CallbackReturn on_configure(
+    const rclcpp_lifecycle::State & previous_state) override;
+
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   hardware_interface::CallbackReturn on_activate(
     const rclcpp_lifecycle::State & previous_state) override;
 

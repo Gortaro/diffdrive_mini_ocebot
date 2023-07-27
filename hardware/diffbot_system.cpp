@@ -37,7 +37,13 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     return hardware_interface::CallbackReturn::ERROR;
   }
 
-  gpioInitialise();
+  if(gpioInitialise() < 0)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("DiffBotSystemHardware"),
+      "Failed to initialize GPIO pins, exiting now. . .");
+    return hardware_interface::CallbackReturn::ERROR;
+  }
 
   cfg_.left_wheel_name = info_.hardware_parameters["left_wheel_name"];
   cfg_.right_wheel_name = info_.hardware_parameters["right_wheel_name"];
@@ -128,6 +134,33 @@ std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_
     wheel_right_.name, hardware_interface::HW_IF_VELOCITY, &wheel_right_.cmd));
 
   return command_interfaces;
+}
+
+hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
+  const rclcpp_lifecycle::State & /*previous_state*/)
+{
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
+
+  if(gpioSetMode(cfg_.left_wheel_pin, PI_OUTPUT) != 0) 
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("DiffBotSystemHardware"), 
+      "Configuration of left motor has failed, exiting now...");
+    return hardware_interface::CallbackReturn::ERROR;
+  }
+
+  if(gpioSetMode(cfg_.right_wheel_pin, PI_OUTPUT) != 0)
+  {
+    RCLCPP_FATAL(
+      rclcpp::get_logger("DiffBotSystemHardware"), 
+      "Configuration of right motor has failed, exiting now. . .");
+
+    return hardware_interface::CallbackReturn::ERROR;
+  }
+
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
+
+  return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
