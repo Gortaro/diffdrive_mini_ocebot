@@ -23,7 +23,7 @@
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include <pigpio.h>
+#include <pigpiod_if2.h>
 
 namespace diffdrive_mini_ocebot
 {
@@ -37,7 +37,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     return hardware_interface::CallbackReturn::ERROR;
   }
 
-  if(gpioInitialise() < 0)
+  if(pigpio_start(nullptr, nullptr) < 0)
   {
     RCLCPP_FATAL(
       rclcpp::get_logger("DiffBotSystemHardware"),
@@ -141,22 +141,22 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
 
-  if(gpioSetMode(cfg_.left_wheel_pin, PI_OUTPUT) != 0) 
-  {
-    RCLCPP_FATAL(
-      rclcpp::get_logger("DiffBotSystemHardware"), 
-      "Configuration of left motor has failed, exiting now...");
-    return hardware_interface::CallbackReturn::ERROR;
-  }
+  // if(gpioSetMode(cfg_.left_wheel_pin, PI_OUTPUT) != 0) 
+  // {
+  //   RCLCPP_FATAL(
+  //     rclcpp::get_logger("DiffBotSystemHardware"), 
+  //     "Configuration of left motor has failed, exiting now...");
+  //   return hardware_interface::CallbackReturn::ERROR;
+  // }
 
-  if(gpioSetMode(cfg_.right_wheel_pin, PI_OUTPUT) != 0)
-  {
-    RCLCPP_FATAL(
-      rclcpp::get_logger("DiffBotSystemHardware"), 
-      "Configuration of right motor has failed, exiting now. . .");
+  // if(gpioSetMode(cfg_.right_wheel_pin, PI_OUTPUT) != 0)
+  // {
+  //   RCLCPP_FATAL(
+  //     rclcpp::get_logger("DiffBotSystemHardware"), 
+  //     "Configuration of right motor has failed, exiting now. . .");
 
-    return hardware_interface::CallbackReturn::ERROR;
-  }
+  //   return hardware_interface::CallbackReturn::ERROR;
+  // }
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
 
