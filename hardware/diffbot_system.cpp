@@ -38,7 +38,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   }
   
   cfg_.pi = pigpio_start(nullptr, nullptr);
-
+  
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Pi: %i", cfg_.pi);
 
   if(cfg_.pi < 0)
@@ -145,11 +145,11 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
 
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Pin: %i", cfg_.left_wheel_pin);
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Wheel: %i", set_mode(cfg_.pi, cfg_.left_wheel_pin, 1));
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Pin: %i", get_mode(cfg_.pi, cfg_.left_wheel_pin));
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Wheel: %i", set_mode(cfg_.pi, cfg_.left_wheel_pin, PI_OUTPUT));
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Right Pin: %i", cfg_.right_wheel_pin);
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Right Wheel: %i", set_mode(cfg_.pi, cfg_.right_wheel_pin, 1));
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Right Wheel: %i", set_mode(cfg_.pi, cfg_.right_wheel_pin, PI_OUTPUT));
 
   if(set_mode(cfg_.pi, cfg_.left_wheel_pin, PI_OUTPUT) != 0) 
   {
