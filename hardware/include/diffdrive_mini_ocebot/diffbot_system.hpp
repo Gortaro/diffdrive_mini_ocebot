@@ -45,6 +45,7 @@ struct Config
   int left_wheel_pin = 0;
   int right_wheel_pin = 0;
   unsigned enc_counts_per_rev = 0;
+  int pi = 0;
 };
 
 public:
