@@ -39,6 +39,8 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   
   cfg_.pi = pigpio_start(nullptr, nullptr);
 
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Pi: %i", cfg_.pi);
+
   if(cfg_.pi < 0)
   {
     RCLCPP_FATAL(
@@ -143,6 +145,12 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
 
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Pin: %i", cfg_.left_wheel_pin);
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Wheel: %i", set_mode(cfg_.pi, cfg_.left_wheel_pin, 1));
+
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Right Pin: %i", cfg_.right_wheel_pin);
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Right Wheel: %i", set_mode(cfg_.pi, cfg_.right_wheel_pin, 1));
+
   if(set_mode(cfg_.pi, cfg_.left_wheel_pin, PI_OUTPUT) != 0) 
   {
     RCLCPP_FATAL(
@@ -157,8 +165,8 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
       rclcpp::get_logger("DiffBotSystemHardware"), 
       "Configuration of right motor has failed, exiting now. . .");
 
-  //   return hardware_interface::CallbackReturn::ERROR;
-  // }
+    return hardware_interface::CallbackReturn::ERROR;
+  }
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
 
@@ -210,7 +218,7 @@ hardware_interface::return_type diffdrive_mini_ocebot ::DiffBotSystemHardware::w
 }
 
 }  // namespace diffdrive_mini_ocebot
-}
+
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(
   diffdrive_mini_ocebot::DiffBotSystemHardware, hardware_interface::SystemInterface)
