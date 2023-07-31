@@ -37,7 +37,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     return hardware_interface::CallbackReturn::ERROR;
   }
   
-  cfg_.pi = pigpio_start(nullptr, nullptr);
+  cfg_.pi = pigpio_start(NULL, NULL);
   
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Pi: %i", cfg_.pi);
 
@@ -145,17 +145,14 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
 
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Pin: %i", get_mode(cfg_.pi, cfg_.left_wheel_pin));
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Left Wheel: %i", set_mode(cfg_.pi, cfg_.left_wheel_pin, PI_OUTPUT));
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Right Pin: %i", cfg_.right_wheel_pin);
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Right Wheel: %i", set_mode(cfg_.pi, cfg_.right_wheel_pin, PI_OUTPUT));
-
   if(set_mode(cfg_.pi, cfg_.left_wheel_pin, PI_OUTPUT) != 0) 
   {
     RCLCPP_FATAL(
       rclcpp::get_logger("DiffBotSystemHardware"), 
       "Configuration of left motor has failed, exiting now...");
+
+    pigpio_stop(cfg_.pi);
+
     return hardware_interface::CallbackReturn::ERROR;
   }
 
@@ -164,6 +161,8 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
     RCLCPP_FATAL(
       rclcpp::get_logger("DiffBotSystemHardware"), 
       "Configuration of right motor has failed, exiting now. . .");
+
+    pigpio_stop(cfg_.pi);
 
     return hardware_interface::CallbackReturn::ERROR;
   }
@@ -189,6 +188,18 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Deactivating ...please wait...");
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully deactivated!");
+
+  return hardware_interface::CallbackReturn::SUCCESS;
+}
+
+hardware_interface::CallbackReturn DiffBotSystemHardware::on_shutdown(
+  const rclcpp_lifecycle::State & /*previous_state*/)
+{
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Terminating connection to daemon... please wait...");
+  
+  pigpio_stop(cfg_.pi);
+  
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Shutdown successfull!");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }

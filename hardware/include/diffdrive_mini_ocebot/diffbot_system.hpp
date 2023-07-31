@@ -74,6 +74,10 @@ public:
     const rclcpp_lifecycle::State & previous_state) override;
 
   DIFFDRIVE_MINI_OCEBOT_PUBLIC
+  hardware_interface::CallbackReturn on_shutdown(
+    const rclcpp_lifecycle::State & previous_state) override;
+
+  DIFFDRIVE_MINI_OCEBOT_PUBLIC
   hardware_interface::return_type read(
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
