@@ -133,11 +133,7 @@ std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_
 hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
-
   gpio_controller_.setup(cfg_.left_enc_pin, cfg_.right_enc_pin, cfg_.left_wheel_pin, cfg_.right_wheel_pin);
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -145,20 +141,12 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 hardware_interface::CallbackReturn DiffBotSystemHardware::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Activating ...please wait...");
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully activated!");
-
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
 hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Deactivating ...please wait...");
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully deactivated!");
-
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -168,8 +156,6 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Terminating connection to daemon... please wait...");
 
   gpio_controller_.cleanup();
-
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Cleanup successfull!");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
