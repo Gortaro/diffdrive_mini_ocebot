@@ -39,8 +39,6 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   
   cfg_.pi = pigpio_start(NULL, NULL);
   
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Pi: %i", cfg_.pi);
-
   if(cfg_.pi < 0)
   {
     RCLCPP_FATAL(
@@ -192,14 +190,17 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_deactivate(
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
-hardware_interface::CallbackReturn DiffBotSystemHardware::on_shutdown(
+hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Terminating connection to daemon... please wait...");
-  
-  pigpio_stop(cfg_.pi);
-  
-  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Shutdown successfull!");
+
+  if(cfg_.pi >= 0)
+  {
+    pigpio_stop(cfg_.pi);
+  }
+
+  RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Cleanup successfull!");
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }

@@ -44,6 +44,8 @@ struct Config
   std::string right_wheel_name = "";
   int left_wheel_pin = 0;
   int right_wheel_pin = 0;
+  int left_enc_pin = 0;
+  int right_enc_pin = 0;
   unsigned enc_counts_per_rev = 0;
   int pi = 0;
 };
@@ -86,7 +88,7 @@ public:
     const rclcpp::Time & time, const rclcpp::Duration & period) override;
 
 private:
-  Config cfg_; 
+  Config cfg_;
   Wheel wheel_left_;
   Wheel wheel_right_;
 };
