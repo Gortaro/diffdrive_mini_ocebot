@@ -36,21 +36,13 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   {
     return hardware_interface::CallbackReturn::ERROR;
   }
-  
-  cfg_.pi = pigpio_start(NULL, NULL);
-  
-  if(cfg_.pi < 0)
-  {
-    RCLCPP_FATAL(
-      rclcpp::get_logger("DiffBotSystemHardware"),
-      "Failed to initialize GPIO pins, exiting now. . .");
-    return hardware_interface::CallbackReturn::ERROR;
-  }
 
   cfg_.left_wheel_name = info_.hardware_parameters["left_wheel_name"];
   cfg_.right_wheel_name = info_.hardware_parameters["right_wheel_name"];
   cfg_.left_wheel_pin = std::stoi(info_.hardware_parameters["left_wheel_pin"]);
   cfg_.right_wheel_pin = std::stoi(info_.hardware_parameters["right_wheel_pin"]);
+  cfg_.left_enc_pin = std::stoi(info_.hardware_parameters["left_encoder_pin"]);
+  cfg_.right_enc_pin = std::stoi(info_.hardware_parameters["right_encoder_pin"]);
   cfg_.enc_counts_per_rev = std::stoul(info_.hardware_parameters["enc_counts_per_rev"]);
   
   wheel_left_.setup(cfg_.left_wheel_name, cfg_.enc_counts_per_rev);
@@ -143,27 +135,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Configuring ...please wait...");
 
-  if(set_mode(cfg_.pi, cfg_.left_wheel_pin, PI_OUTPUT) != 0) 
-  {
-    RCLCPP_FATAL(
-      rclcpp::get_logger("DiffBotSystemHardware"), 
-      "Configuration of left motor has failed, exiting now...");
-
-    pigpio_stop(cfg_.pi);
-
-    return hardware_interface::CallbackReturn::ERROR;
-  }
-
-  if(set_mode(cfg_.pi, cfg_.right_wheel_pin, PI_OUTPUT) != 0)
-  {
-    RCLCPP_FATAL(
-      rclcpp::get_logger("DiffBotSystemHardware"), 
-      "Configuration of right motor has failed, exiting now. . .");
-
-    pigpio_stop(cfg_.pi);
-
-    return hardware_interface::CallbackReturn::ERROR;
-  }
+  gpio_controller_.setup(cfg_.left_enc_pin, cfg_.right_enc_pin, cfg_.left_wheel_pin, cfg_.right_wheel_pin);
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Successfully configured!");
 
@@ -195,10 +167,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
 {
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Terminating connection to daemon... please wait...");
 
-  if(cfg_.pi >= 0)
-  {
-    pigpio_stop(cfg_.pi);
-  }
+  gpio_controller_.cleanup();
 
   RCLCPP_INFO(rclcpp::get_logger("DiffBotSystemHardware"), "Cleanup successfull!");
 
@@ -208,6 +177,8 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
 hardware_interface::return_type DiffBotSystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
+  gpio_controller_.read_encoder_values(wheel_left_.enc, wheel_right_.enc);
+
   double delta_seconds = period.seconds();
 
   float pos_prev = wheel_left_.pos;
@@ -224,7 +195,11 @@ hardware_interface::return_type DiffBotSystemHardware::read(
 hardware_interface::return_type diffdrive_mini_ocebot ::DiffBotSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
+  //TODO: Figure out how to set PWM values/what conversion to use
   
+  int motor_l_counts_per_loop = wheel_left_.cmd;
+  int motor_r_counts_per_loop = wheel_right_.cmd;
+  gpio_controller_.set_motor_values(motor_l_counts_per_loop, motor_r_counts_per_loop);
 
   return hardware_interface::return_type::OK;
 }

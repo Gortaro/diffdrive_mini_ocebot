@@ -32,6 +32,7 @@
 
 #include "diffdrive_mini_ocebot/visibility_control.h"
 #include "diffdrive_mini_ocebot/wheel.hpp"
+#include "diffdrive_mini_ocebot/controller.hpp"
 
 namespace diffdrive_mini_ocebot
 {
@@ -47,7 +48,6 @@ struct Config
   int left_enc_pin = 0;
   int right_enc_pin = 0;
   unsigned enc_counts_per_rev = 0;
-  int pi = 0;
 };
 
 public:
@@ -76,7 +76,7 @@ public:
     const rclcpp_lifecycle::State & previous_state) override;
 
   DIFFDRIVE_MINI_OCEBOT_PUBLIC
-  hardware_interface::CallbackReturn on_shutdown(
+  hardware_interface::CallbackReturn on_cleanup(
     const rclcpp_lifecycle::State & previous_state) override;
 
   DIFFDRIVE_MINI_OCEBOT_PUBLIC
@@ -91,6 +91,7 @@ private:
   Config cfg_;
   Wheel wheel_left_;
   Wheel wheel_right_;
+  Controller gpio_controller_;
 };
 
 }  // namespace diffdrive_mini_ocebot
