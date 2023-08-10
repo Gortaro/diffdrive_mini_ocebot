@@ -69,14 +69,32 @@ class Controller
         while(left_current_PWM != left_PWM)
         {
             left_current_PWM = get_PWM_dutycycle(pi, left_motor);
-            set_PWM_dutycycle(pi, left_motor, left_current_PWM + std::copysign(1.0, left_current_PWM));
+            
+            if(left_current_PWM < left_PWM)
+            {
+                set_PWM_dutycycle(pi, left_motor, left_current_PWM + 1);
+            }
+            else
+            {
+                set_PWM_dutycycle(pi, left_motor, left_current_PWM - 1);
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
 
         while(right_current_PWM != right_PWM)
         {
             right_current_PWM = get_PWM_dutycycle(pi, right_motor);
-            set_PWM_dutycycle(pi, right_motor, right_current_PWM + std::copysign(1.0, right_current_PWM));
+            
+            if(right_current_PWM < right_PWM)
+            {
+                set_PWM_dutycycle(pi, right_motor, right_current_PWM + 1);
+            }
+            else
+            {
+                set_PWM_dutycycle(pi, right_motor, right_current_PWM - 1);
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
     }
