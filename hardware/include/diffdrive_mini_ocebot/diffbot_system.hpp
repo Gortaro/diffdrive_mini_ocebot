@@ -45,6 +45,8 @@ struct Config
   std::string right_wheel_name = "";
   int left_wheel_pin = 0;
   int right_wheel_pin = 0;
+  int left_direction_pin = 0;
+  int right_direction_pin = 0;
   int left_enc_pin = 0;
   int right_enc_pin = 0;
   unsigned enc_counts_per_rev = 0;

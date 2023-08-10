@@ -17,6 +17,7 @@
 #include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <cstdlib>
 #include <limits>
 #include <memory>
 #include <vector>
@@ -41,6 +42,8 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
   cfg_.right_wheel_name = info_.hardware_parameters["right_wheel_name"];
   cfg_.left_wheel_pin = std::stoi(info_.hardware_parameters["left_wheel_pin"]);
   cfg_.right_wheel_pin = std::stoi(info_.hardware_parameters["right_wheel_pin"]);
+  cfg_.left_direction_pin = std::stoi(info_.hardware_parameters["left_direction_pin"]);
+  cfg_.right_direction_pin = std::stoi(info_.hardware_parameters["right_direction_pin"]);
   cfg_.left_enc_pin = std::stoi(info_.hardware_parameters["left_encoder_pin"]);
   cfg_.right_enc_pin = std::stoi(info_.hardware_parameters["right_encoder_pin"]);
   cfg_.enc_counts_per_rev = std::stoul(info_.hardware_parameters["enc_counts_per_rev"]);
@@ -133,7 +136,7 @@ std::vector<hardware_interface::CommandInterface> DiffBotSystemHardware::export_
 hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  gpio_controller_.setup(cfg_.left_enc_pin, cfg_.right_enc_pin, cfg_.left_wheel_pin, cfg_.right_wheel_pin);
+  gpio_controller_.setup(cfg_.left_enc_pin, cfg_.right_enc_pin, cfg_.left_wheel_pin, cfg_.right_wheel_pin, cfg_.left_direction_pin, cfg_.right_direction_pin);
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -183,8 +186,9 @@ hardware_interface::return_type diffdrive_mini_ocebot ::DiffBotSystemHardware::w
 {
   //TODO: Figure out how to set PWM values/what conversion to use
   
-  int motor_l_counts_per_loop = wheel_left_.cmd;
-  int motor_r_counts_per_loop = wheel_right_.cmd;
+  int motor_l_counts_per_loop = wheel_left_.cmd * 20;
+  int motor_r_counts_per_loop = wheel_right_.cmd * 20;
+
   gpio_controller_.set_motor_values(motor_l_counts_per_loop, motor_r_counts_per_loop);
 
   return hardware_interface::return_type::OK;
