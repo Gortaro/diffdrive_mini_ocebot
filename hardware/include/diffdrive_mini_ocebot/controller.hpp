@@ -3,6 +3,8 @@
 
 #include <pigpiod_if2.h>
 #include <cmath>
+#include <chrono>
+#include <thread>
 
 class Controller
 {
@@ -32,17 +34,17 @@ class Controller
         left_motor = left_motor_pin;
         right_motor = right_motor_pin;
 
-	left_direction = left_dir_pin;
-	right_direction = right_dir_pin;
+	    left_direction = left_dir_pin;
+	    right_direction = right_dir_pin;
 
         set_mode(pi, left_enc, PI_INPUT);
         set_mode(pi, right_enc, PI_INPUT);
         
-	set_mode(pi, left_motor, PI_OUTPUT);
+	    set_mode(pi, left_motor, PI_OUTPUT);
         set_mode(pi, right_motor, PI_OUTPUT);
 
-	set_mode(pi, left_direction, PI_OUTPUT);
-	set_mode(pi, right_direction, PI_OUTPUT);
+	    set_mode(pi, left_direction, PI_OUTPUT);
+	    set_mode(pi, right_direction, PI_OUTPUT);
     }
 
     void read_encoder_values(int &left_enc, int &right_enc)
@@ -52,14 +54,31 @@ class Controller
 
     void set_motor_values(int left, int right)
     {
-	int left_direction = (left > 0) ? 1 : 0;
-	int right_direction = (right > 0) ? 1 : 0;
+        int left_direction = (left > 0) ? 1 : 0;
+        int right_direction = (right > 0) ? 1 : 0;
 
-	int left_PWM = std::min(abs(left), 255);
-	int right_PWM = std::min(abs(right), 255);
+        int left_PWM = std::min(abs(left), 255);
+        int right_PWM = std::min(abs(right), 255);
 
-	gpio_write(pi, this->left_direction, left_direction);
-	gpio_write(pi, this->right_direction, right_direction);
+        int left_current_PWM = get_PWM_dutycycle(pi, left_motor);
+        int right_current_PWM = get_PWM_dutycycle(pi, right_motor);
+
+        gpio_write(pi, this->left_direction, left_direction);
+        gpio_write(pi, this->right_direction, right_direction);
+
+        while(left_current_PWM != left_PWM)
+        {
+            left_current_PWM = get_PWM_dutycycle(pi, left_motor);
+            set_PWM_dutycycle(pi, left_motor, left_current_PWM + std::copysign(1.0, left_current_PWM));
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
+
+        while(right_current_PWM != right_PWM)
+        {
+            right_current_PWM = get_PWM_dutycycle(pi, right_motor);
+            set_PWM_dutycycle(pi, right_motor, right_current_PWM + std::copysign(1.0, right_current_PWM));
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
 
     void cleanup()
