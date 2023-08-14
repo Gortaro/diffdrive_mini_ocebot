@@ -53,7 +53,6 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
 
   for (const hardware_interface::ComponentInfo & joint : info_.joints)
   {
-    // DiffBotSystem has exactly two states and one command interface on each joint
     if (joint.command_interfaces.size() != 1)
     {
       RCLCPP_FATAL(
@@ -85,7 +84,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("DiffBotSystemHardware"),
-        "Joint '%s' have '%s' as first state interface. '%s' expected.", joint.name.c_str(),
+        "Joint '%s' have '%s' as state interface. '%s' expected.", joint.name.c_str(),
         joint.state_interfaces[0].name.c_str(), hardware_interface::HW_IF_POSITION);
       return hardware_interface::CallbackReturn::ERROR;
     }
@@ -94,7 +93,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_init(
     {
       RCLCPP_FATAL(
         rclcpp::get_logger("DiffBotSystemHardware"),
-        "Joint '%s' have '%s' as second state interface. '%s' expected.", joint.name.c_str(),
+        "Joint '%s' have '%s' as state interface. '%s' expected.", joint.name.c_str(),
         joint.state_interfaces[1].name.c_str(), hardware_interface::HW_IF_VELOCITY);
       return hardware_interface::CallbackReturn::ERROR;
     }
@@ -137,6 +136,7 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
   gpio_controller_.setup(cfg_.left_enc_pin, cfg_.right_enc_pin, cfg_.left_wheel_pin, cfg_.right_wheel_pin, cfg_.left_direction_pin, cfg_.right_direction_pin);
+  gpio_controller_.register_encoders(wheel_left_.enc, wheel_right_.enc);
 
   return hardware_interface::CallbackReturn::SUCCESS;
 }
@@ -166,8 +166,6 @@ hardware_interface::CallbackReturn DiffBotSystemHardware::on_cleanup(
 hardware_interface::return_type DiffBotSystemHardware::read(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & period)
 {
-  gpio_controller_.read_encoder_values(wheel_left_.enc, wheel_right_.enc);
-
   double delta_seconds = period.seconds();
 
   float pos_prev = wheel_left_.pos;
@@ -184,8 +182,6 @@ hardware_interface::return_type DiffBotSystemHardware::read(
 hardware_interface::return_type diffdrive_mini_ocebot ::DiffBotSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  //TODO: Figure out how to set PWM values/what conversion to use
-  
   int motor_l_counts_per_loop = wheel_left_.cmd * 20;
   int motor_r_counts_per_loop = wheel_right_.cmd * 20;
 
