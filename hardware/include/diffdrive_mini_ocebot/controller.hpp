@@ -28,7 +28,7 @@ class Controller
 
     void setup(int left_enc_pin, int right_enc_pin, int left_motor_pin, int right_motor_pin, int left_dir_pin, int right_dir_pin)
     {
-        pi = pigpio_start(NULL, NULL); 
+        pi = pigpio_start(NULL, NULL);
 
         left_enc = left_enc_pin;
         right_enc = right_enc_pin;
@@ -68,31 +68,27 @@ class Controller
         int left_direction = (left < 0) ? 1 : 0;
         int right_direction = (right > 0) ? 1 : 0;
 
-        int left_PWM = std::min(abs(left), 30);
-        int right_PWM = std::min(abs(right), 30); // Cap max power at ~15%
-
-	int left_current_PWM = get_PWM_dutycycle(pi, left_motor);
+        int left_PWM = std::min(abs(left), 115); //Limit to about 45% max power
+        int right_PWM = std::min(abs(right), 115);
 
         gpio_write(pi, this->left_direction, left_direction);
         gpio_write(pi, this->right_direction, right_direction);
+	
+	int left_current_PWM = get_PWM_dutycycle(pi, left_motor);
+	int right_current_PWM = get_PWM_dutycycle(pi, right_motor);
+
+//	if(((left_PWM < left_current_PWM) && (left_PWM < (0.2 * 255))) && ((right_PWM < right_current_PWM) && (right_PWM < (0.2 * 255))))
+//	{
+//	    set_PWM_dutycycle(pi, right_motor, 0.2 * 255);
+//	    set_PWM_dutycycle(pi, left_motor, 0.2 * 255);
+//
+//	    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+//	}
 
 	set_PWM_dutycycle(pi, right_motor, right_PWM);
-
-	while(left_current_PWM != left_PWM)
-	{
-	    left_current_PWM = get_PWM_dutycycle(pi, left_motor);
-	    
-	    if(left_current_PWM < left_PWM)
-	    {
-	        set_PWM_dutycycle(pi, left_motor, left_current_PWM + 1);
-	    }
-	    else
-	    {
-		set_PWM_dutycycle(pi, left_motor, left_current_PWM - 1);
-	    }
-
-	    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    	}
+//	set_PWM_dutycycle(pi, right_motor, 255);
+//	set_PWM_dutycycle(pi, left_motor, 255);
+	set_PWM_dutycycle(pi, left_motor, left_PWM);
     }
 
     void cleanup()

@@ -182,8 +182,8 @@ hardware_interface::return_type DiffBotSystemHardware::read(
 hardware_interface::return_type diffdrive_mini_ocebot ::DiffBotSystemHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  int motor_l_counts_per_loop = wheel_left_.cmd * 20;
-  int motor_r_counts_per_loop = wheel_right_.cmd * 20;
+  int motor_l_counts_per_loop = wheel_left_.cmd * 10;
+  int motor_r_counts_per_loop = wheel_right_.cmd * 10;
 
   gpio_controller_.set_motor_values(motor_l_counts_per_loop, motor_r_counts_per_loop);
 
